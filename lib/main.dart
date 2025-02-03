@@ -72,7 +72,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String _output = "Premi il pulsante per eseguire il comando";
+  String _output = "";
   final _urlController = TextEditingController();
 
   Future<void> _aggiornaYdl() async {
@@ -108,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
       showDialog<String>(
         context: context,
         builder: (BuildContext context) => AlertDialog(
-          title: const Text('Attenzione'),
+          title: const Text('Attenzione!'),
           content: const Text('Inserire un url'),
           actions: <Widget>[
             TextButton(
@@ -119,60 +119,53 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     } else {
-      String? outputFile = await FilePicker.platform.saveFile(
-        dialogTitle: 'Scegli cartella di destinazione',
-        // fileName: "bla.mp3",
-      );
+      setState(() {
+        _output = "Download in corso...";
+      });
 
-      if (outputFile != null) {
-        setState(() {
-          _output = "Download in corso...";
+      try {
+        Process process = await Process.start(
+          "ydl.exe",
+          [
+            "-x",
+            "--audio-format",
+            "mp3",
+            "-o",
+            "C:\\Personal\\Musica\\%(title)s.%(ext)s\" ",
+            _urlController.text
+          ],
+          runInShell: true,
+        );
+
+        process.stdout.transform(SystemEncoding().decoder).listen((data) {
+          setState(() {
+            _output += "\n$data";
+          });
         });
 
-        try {
-          Process process = await Process.start(
-            "ydl.exe",
-            [
-              "-x",
-              "--audio-format",
-              "mp3",
-              "-o",
-              "$outputFile/%(title)s.%(ext)s\" ",
-              _urlController.text
-            ],
-            runInShell: true,
-          );
-
-          process.stdout.transform(SystemEncoding().decoder).listen((data) {
-            setState(() {
-              _output += "\n$data";
-            });
-          });
-
-          process.stderr.transform(SystemEncoding().decoder).listen((data) {
-            setState(() {
-              _output += "\nErrore: $data";
-            });
-          });
-
-          int exitCode = await process.exitCode;
+        process.stderr.transform(SystemEncoding().decoder).listen((data) {
           setState(() {
-            _output += exitCode == 0
-                ? "\n✅ Download completato con successo!"
-                : "\n❌ Errore nel download. Codice: $exitCode";
+            _output += "\nErrore: $data";
           });
-        } catch (e) {
-          setState(() {
-            _output = "Errore nell'esecuzione: $e";
-          });
-        }
+        });
+
+        int exitCode = await process.exitCode;
+        setState(() {
+          _output += exitCode == 0
+              ? "\n✅ Download completato con successo!"
+              : "\n❌ Errore nel download. Codice: $exitCode";
+        });
+      } catch (e) {
+        setState(() {
+          _output = "Errore nell'esecuzione: $e";
+        });
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    _urlController.text = "https://www.youtube.com/watch?v=g6t8g6ka4W0";
+    // _urlController.text = "https://www.youtube.com/watch?v=g6t8g6ka4W0";
 
     return Scaffold(
       // appBar: AppBar(
