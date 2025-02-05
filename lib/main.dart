@@ -102,66 +102,49 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _scaricaMp3(String dir) async {
-    String ydlUrl = _urlController.text;
+  Future<void> _scaricaMp3(String dir, String ydlUrl) async {
+    setState(() {
+      _output = "Download in corso...";
+    });
 
-    if (ydlUrl.isEmpty) {
-      showDialog<String>(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('Attenzione!'),
-          content: const Text('Inserire un url'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context, 'OK'),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+    try {
+      Process process = await Process.start(
+        "ydl.exe",
+        [
+          "-x",
+          "--audio-format",
+          "mp3",
+          "-o",
+          "$dir\\%(title)s.%(ext)s\" ",
+          // "C:\\Personal\\Musica\\%(title)s.%(ext)s\" ",
+          _urlController.text
+        ],
+        runInShell: true,
       );
-    } else {
-      setState(() {
-        _output = "Download in corso...";
+
+      process.stdout.transform(SystemEncoding().decoder).listen((data) {
+        setState(() {
+          _output += "\n$data";
+        });
       });
 
-      try {
-        Process process = await Process.start(
-          "ydl.exe",
-          [
-            "-x",
-            "--audio-format",
-            "mp3",
-            "-o",
-            "$dir\\%(title)s.%(ext)s\" ",
-            // "C:\\Personal\\Musica\\%(title)s.%(ext)s\" ",
-            _urlController.text
-          ],
-          runInShell: true,
-        );
-
-        process.stdout.transform(SystemEncoding().decoder).listen((data) {
-          setState(() {
-            _output += "\n$data";
-          });
-        });
-
-        process.stderr.transform(SystemEncoding().decoder).listen((data) {
-          setState(() {
-            _output += "\nErrore: $data";
-          });
-        });
-
-        int exitCode = await process.exitCode;
+      process.stderr.transform(SystemEncoding().decoder).listen((data) {
         setState(() {
-          _output += exitCode == 0
-              ? "\n✅ Download completato con successo!"
-              : "\n❌ Errore nel download. Codice: $exitCode";
+          _output += "\nErrore: $data";
         });
-      } catch (e) {
-        setState(() {
-          _output = "Errore nell'esecuzione: $e";
-        });
-      }
+      });
+
+      int exitCode = await process.exitCode;
+      setState(() {
+        _output = exitCode == 0
+            ? "\n✅ Download completato con successo!"
+            : "\n❌ Errore nel download. Codice: $exitCode";
+        _urlController.text = "";
+      });
+    } catch (e) {
+      setState(() {
+        _output = "Errore nell'esecuzione: $e";
+      });
     }
   }
 
@@ -197,18 +180,36 @@ class _MyHomePageState extends State<MyHomePage> {
                 SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () async {
-                    String? selectedDirectory =
-                        await FilePicker.platform.getDirectoryPath();
+                    String ydlUrl = _urlController.text;
 
-                    if (selectedDirectory != null) {
-                      BlockUi.show(
-                        context,
-                        child: SpinKitChasingDots(
-                          color: Color(0xff388e3c),
+                    if (ydlUrl.isEmpty) {
+                      showDialog<String>(
+                        context: context,
+                        builder: (BuildContext context) => AlertDialog(
+                          title: const Text('Attenzione!'),
+                          content: const Text('Inserire un url'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'OK'),
+                              child: const Text('OK'),
+                            ),
+                          ],
                         ),
                       );
-                      await _scaricaMp3(selectedDirectory);
-                      BlockUi.hide(context);
+                    } else {
+                      String? selectedDirectory =
+                          await FilePicker.platform.getDirectoryPath();
+
+                      if (selectedDirectory != null) {
+                        BlockUi.show(
+                          context,
+                          child: SpinKitChasingDots(
+                            color: Color(0xff388e3c),
+                          ),
+                        );
+                        await _scaricaMp3(selectedDirectory, ydlUrl);
+                        BlockUi.hide(context);
+                      }
                     }
                   },
                   child: Text("Scarica Canzone"),
@@ -217,6 +218,39 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             SizedBox(height: 16),
             TextField(
+              onSubmitted: (value) async {
+                String ydlUrl = _urlController.text;
+
+                if (ydlUrl.isEmpty) {
+                  showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Attenzione!'),
+                      content: const Text('Inserire un url'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, 'OK'),
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  String? selectedDirectory =
+                  await FilePicker.platform.getDirectoryPath();
+
+                  if (selectedDirectory != null) {
+                    BlockUi.show(
+                      context,
+                      child: SpinKitChasingDots(
+                        color: Color(0xff388e3c),
+                      ),
+                    );
+                    await _scaricaMp3(selectedDirectory, ydlUrl);
+                    BlockUi.hide(context);
+                  }
+                }
+              },
               controller: _urlController,
               decoration: const InputDecoration(
                 labelText: "Inserisci url",
