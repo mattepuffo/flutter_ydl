@@ -1,16 +1,10 @@
-# flutter_ydl
+# Flutter YDL
 
-A new Flutter project.
+Questo programma sostituisce quello precedente che era scritto in Qt.
+Scritto in Flutter al momento l'ho testato solo su Windows.
+E' necessario avere Python installato sul pc, in quanto [yt-dlp](https://github.com/yt-dlp/yt-dlp) lo richiede.
 
-## Getting Started
+## Changelog
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 1.0
+- prima release

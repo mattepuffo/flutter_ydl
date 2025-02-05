@@ -15,7 +15,6 @@ void main() async {
 
   await windowManager.show();
   await windowManager.focus();
-  await windowManager.setAlignment(Alignment.center, animate: true);
   await windowManager.setSize(size);
   await windowManager.setMaximumSize(size);
   await windowManager.setMinimumSize(size);
@@ -24,6 +23,8 @@ void main() async {
   await windowManager.setTitle("MPYDL");
 
   runApp(const MyApp());
+
+  await windowManager.setAlignment(Alignment.center, animate: true);
 }
 
 class MyApp extends StatelessWidget {
@@ -101,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _scaricaMp3() async {
+  Future<void> _scaricaMp3(String dir) async {
     String ydlUrl = _urlController.text;
 
     if (ydlUrl.isEmpty) {
@@ -131,7 +132,8 @@ class _MyHomePageState extends State<MyHomePage> {
             "--audio-format",
             "mp3",
             "-o",
-            "C:\\Personal\\Musica\\%(title)s.%(ext)s\" ",
+            "$dir\\%(title)s.%(ext)s\" ",
+            // "C:\\Personal\\Musica\\%(title)s.%(ext)s\" ",
             _urlController.text
           ],
           runInShell: true,
@@ -195,14 +197,19 @@ class _MyHomePageState extends State<MyHomePage> {
                 SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () async {
-                    BlockUi.show(
-                      context,
-                      child: SpinKitChasingDots(
-                        color: Color(0xff388e3c),
-                      ),
-                    );
-                    await _scaricaMp3();
-                    BlockUi.hide(context);
+                    String? selectedDirectory =
+                        await FilePicker.platform.getDirectoryPath();
+
+                    if (selectedDirectory != null) {
+                      BlockUi.show(
+                        context,
+                        child: SpinKitChasingDots(
+                          color: Color(0xff388e3c),
+                        ),
+                      );
+                      await _scaricaMp3(selectedDirectory);
+                      BlockUi.hide(context);
+                    }
                   },
                   child: Text("Scarica Canzone"),
                 ),
