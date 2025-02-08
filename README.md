@@ -6,8 +6,11 @@ E' necessario avere Python installato sul pc, in quanto [yt-dlp](https://github.
 
 ## Changelog
 
-### 1.0.1
-- prima release
+### 1.0.3
+- sistemazioni comando ydl
 
 ### 1.0.2
 - sistemazioni interfaccia grafica
+
+### 1.0.1
+- prima release

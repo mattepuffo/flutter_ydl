@@ -115,7 +115,8 @@ class _MyHomePageState extends State<MyHomePage> {
           "--audio-format",
           "mp3",
           "-o",
-          "$dir\\%(title)s.%(ext)s\" ",
+          "$dir\\%(title)s.%(ext)s",
+          // "$dir\\%(title)s.%(ext)s\" ",
           // "C:\\Personal\\Musica\\%(title)s.%(ext)s\" ",
           _urlController.text
         ],
