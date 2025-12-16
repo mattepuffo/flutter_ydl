@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -99,6 +100,12 @@ class _MyHomePageState extends State<MyHomePage> {
           "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
       String filePath = "ydl.exe";
 
+      if (isLinuxOs()) {
+        url =
+            "https://github.com/yt-dlp/yt-dlp/releases/download/2025.12.08/yt-dlp";
+        filePath = "ydl";
+      }
+
       await dio.download(url, filePath, onReceiveProgress: (received, total) {
         if (total != -1) {
           setState(() {
@@ -113,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } catch (e) {
       setState(() {
-        _output += "n❌ Errore nel download: $e";
+        _output += "\n❌ Errore nel download: $e";
       });
     }
   }
@@ -123,17 +130,50 @@ class _MyHomePageState extends State<MyHomePage> {
       _output = "Download in corso...";
     });
 
+    if (isLinuxOs()) {
+      final String ydlPath = "./ydl";
+
+      if (await File(ydlPath).exists()) {
+        setState(() {
+          _output += "\nConfigurazione permessi di esecuzione (Linux)...";
+        });
+
+        ProcessResult chmodResult =
+            await Process.run('chmod', ['+x', ydlPath], runInShell: true);
+
+        if (chmodResult.exitCode != 0) {
+          setState(() {
+            _output =
+                "\n❌ Errore nella configurazione dei permessi (chmod): ${chmodResult.stderr}";
+          });
+
+          return;
+        }
+        setState(() {
+          _output += "\nPermessi di esecuzione configurati.";
+        });
+      } else {
+        setState(() {
+          _output =
+              "\n❌ Errore: Binario ydl non trovato in $ydlPath. Assicurati che sia presente.";
+        });
+        return;
+      }
+    }
+
     try {
+      final String executable = isLinuxOs() ? "./ydl" : "ydl.exe";
+      final String outputMp3 = isLinuxOs() ? "$dir/%(title)s.%(ext)s" : "$dir\\%(title)s.%(ext)s";
+
       Process process = await Process.start(
-        "ydl.exe",
+        executable,
         [
           "-x",
           "--audio-format",
           "mp3",
           "-o",
-          "$dir\\%(title)s.%(ext)s",
+          outputMp3,
           // "$dir\\%(title)s.%(ext)s\" ",
-          // "C:\\Personal\\Musica\\%(title)s.%(ext)s\" ",
           _urlController.text
         ],
         runInShell: true,
@@ -254,7 +294,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
                 } else {
                   String? selectedDirectory =
-                  await FilePicker.platform.getDirectoryPath();
+                      await FilePicker.platform.getDirectoryPath();
 
                   if (selectedDirectory != null) {
                     BlockUi.show(
