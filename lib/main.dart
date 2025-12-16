@@ -13,18 +13,34 @@ void main() async {
 
   const size = Size(600, 850);
 
-  await windowManager.show();
-  await windowManager.focus();
-  await windowManager.setSize(size);
-  await windowManager.setMaximumSize(size);
-  await windowManager.setMinimumSize(size);
-  await windowManager.setMaximizable(false);
-  await windowManager.setResizable(false);
-  await windowManager.setTitle("MPYDL");
+  WindowOptions windowOptions = WindowOptions(
+    size: size,
+    center: true,
+    maximumSize: size,
+    minimumSize: size,
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    title: "MPYDL",
+  );
+
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+    await windowManager.setMaximizable(false);
+  });
+
+  // await windowManager.show();
+  // await windowManager.focus();
+  // await windowManager.setSize(size);
+  // await windowManager.setMaximumSize(size);
+  // await windowManager.setMinimumSize(size);
+  // await windowManager.setMaximizable(false);
+  // await windowManager.setResizable(false);
+  // await windowManager.setTitle("MPYDL");
 
   runApp(const MyApp());
 
-  await windowManager.setAlignment(Alignment.center, animate: true);
+  // await windowManager.setAlignment(Alignment.center, animate: true);
 }
 
 class MyApp extends StatelessWidget {
